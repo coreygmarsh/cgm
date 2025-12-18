@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@source "./index.html";
+@source "./src/**/*.{js,jsx,ts,tsx}";
+
+/* HEADINGS (Cinzel) */
+@font-face {
+  font-family: "Cinzel";
+  src: url("/fonts/Cinzel-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  src: url("/fonts/Cinzel-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* BODY (Catchy Mager) */
+@font-face {
+  font-family: "Catchy-Mager";
+  src: url("/fonts/Catchy-Mager/Catchy-Mager.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+.font-heading {
+  font-family: "Cinzel", serif;
+}
+
+.font-body {
+  font-family: "Catchy-Mager", sans-serif;
+}
