@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-
+import { Link } from "react-router-dom";
 const UnderwaterHero = () => {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
@@ -435,20 +435,19 @@ const UnderwaterHero = () => {
 
           {/* NEW: modern CTA row (engaging, still pointer-events-none container; buttons are pointer-events-auto) */}
           <div className="mt-7 flex flex-wrap items-center justify-center gap-4 pointer-events-auto">
-            <a
-              href="#featured"
+            <Link
+              to="#featured"
               className="px-7 py-3 rounded-full font-body font-bold text-black bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 transition-all duration-300"
               style={{ boxShadow: "0 0 28px rgba(0,255,255,0.25)" }}
             >
               View Featured Work
-            </a>
-            <a
-              href="/contact"
+            </Link>
+            <Link to="/contact"
               className="px-7 py-3 rounded-full font-body font-bold text-cyan-100 border border-cyan-400/40 bg-black/30 hover:bg-black/45 transition-all duration-300"
               style={{ boxShadow: "0 0 22px rgba(0,255,255,0.12)" }}
             >
               Hire Me
-            </a>
+            </Link>
           </div>
         </div>
 
