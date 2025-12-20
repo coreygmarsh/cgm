@@ -114,7 +114,13 @@ const FeaturedWorkSection = () => {
       fragmentShader,
       uniforms: {
         time: { value: 0 },
-        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        // ✅ match actual container size (not window size)
+        resolution: {
+          value: new THREE.Vector2(
+            containerRef.current.clientWidth,
+            containerRef.current.clientHeight
+          ),
+        },
       },
       transparent: true,
       blending: THREE.AdditiveBlending,
@@ -133,14 +139,20 @@ const FeaturedWorkSection = () => {
     animate();
 
     const handleResize = () => {
+      if (!containerRef.current) return;
       const width = containerRef.current.clientWidth;
       const height = containerRef.current.clientHeight;
       renderer.setSize(width, height);
       material.uniforms.resolution.value.set(width, height);
     };
+
+    // ✅ use ResizeObserver for more reliable responsive behavior
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(containerRef.current);
     window.addEventListener("resize", handleResize);
 
     return () => {
+      ro.disconnect();
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
@@ -158,7 +170,8 @@ const FeaturedWorkSection = () => {
       category: "video",
       tag: "EDITING",
       icon: "🎥",
-      blurb: "Cuts, pacing, and story-first edits — trailers, reels, and cinematic sequences.",
+      blurb:
+        "Cuts, pacing, and story-first edits — trailers, reels, and cinematic sequences.",
       stats: ["Rhythm", "Story", "Impact"],
     },
     {
@@ -166,7 +179,8 @@ const FeaturedWorkSection = () => {
       category: "music",
       tag: "AUDIO",
       icon: "🎛️",
-      blurb: "Production, mixing, and sound design — emotion you can feel in the room.",
+      blurb:
+        "Production, mixing, and sound design — emotion you can feel in the room.",
       stats: ["Tone", "Space", "Energy"],
     },
     {
@@ -174,7 +188,8 @@ const FeaturedWorkSection = () => {
       category: "photography",
       tag: "VISUALS",
       icon: "📸",
-      blurb: "Stills + design — clean compositions, bold identity, and underwater-inspired aesthetics.",
+      blurb:
+        "Stills + design — clean compositions, bold identity, and underwater-inspired aesthetics.",
       stats: ["Texture", "Color", "Detail"],
     },
   ];
@@ -219,12 +234,13 @@ const FeaturedWorkSection = () => {
         `}
       </style>
 
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10" />
+      {/* ✅ Section height behaves on phones; desktop unchanged */}
+      <section className="relative bg-black overflow-hidden py-16 sm:py-20 md:py-24">
+        <div className="absolute top-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-b from-black to-transparent z-10" />
         <div ref={containerRef} className="absolute inset-0" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-t from-black to-transparent z-10" />
 
-        {/* Floating particles (kept) */}
+        {/* Floating particles */}
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(15)].map((_, i) => (
             <div
@@ -233,7 +249,9 @@ const FeaturedWorkSection = () => {
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                animation: `float-particle ${5 + Math.random() * 5}s ease-in-out infinite`,
+                animation: `float-particle ${
+                  5 + Math.random() * 5
+                }s ease-in-out infinite`,
                 animationDelay: `${Math.random() * 3}s`,
                 boxShadow: "0 0 10px rgba(0, 255, 255, 0.6)",
               }}
@@ -241,10 +259,13 @@ const FeaturedWorkSection = () => {
           ))}
         </div>
 
-        <div className="relative z-10 w-screen mx-auto py-20 px-6">
+        {/* ✅ Keep your layout but constrain widths and scale typography on small */}
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2
-            className="text-7xl md:text-8xl font-bold text-center font-heading mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-300 to-emerald-400"
+            className="font-bold text-center font-heading mb-5 sm:mb-6 text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-green-300 to-emerald-400"
             style={{
+              fontSize: "clamp(2.4rem, 6vw, 6rem)", // responsive title, same desktop feel
+              lineHeight: 1.05,
               textShadow: "0 0 30px rgba(100, 255, 0, 0.9)",
               filter: "drop-shadow(0 0 15px rgba(0, 255, 255, 0.8))",
             }}
@@ -253,21 +274,30 @@ const FeaturedWorkSection = () => {
           </h2>
 
           <p
-            className="text-xl text-cyan-100/80 text-center font-body mb-14"
-            style={{ textShadow: "0 0 10px rgba(0, 255, 255, 0.3)" }}
+            className="text-cyan-100/80 text-center font-body mb-10 sm:mb-14"
+            style={{
+              fontSize: "clamp(1rem, 2.2vw, 1.25rem)",
+              textShadow: "0 0 10px rgba(0, 255, 255, 0.3)",
+            }}
           >
             Dive into a collection of creative projects spanning{" "}
             <span className="font-bold italic text-green-400">video editing</span>,{" "}
-            <span className="font-bold text-green-400 italic">music production</span>, and{" "}
-            <span className="font-bold text-green-400 italic">visual storytelling</span>.
+            <span className="font-bold text-green-400 italic">
+              music production
+            </span>
+            , and{" "}
+            <span className="font-bold text-green-400 italic">
+              visual storytelling
+            </span>
+            .
           </p>
 
-          {/* ✅ Command Center Layout */}
-          <div className="max-w-6xl mx-auto grid grid-cols-1 font-body lg:grid-cols-12 gap-8 items-stretch">
+          {/* ✅ Same structure: stack on small, 12-col on large */}
+          <div className="grid grid-cols-1 font-body lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
             {/* Left: Selector */}
             <div className="lg:col-span-4">
-              <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-900/15 to-teal-950/15 backdrop-blur-sm p-4">
-                <div className="flex items-center justify-between mb-4">
+              <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-900/15 to-teal-950/15 backdrop-blur-sm p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div className="text-emerald-200 font-body font-semibold tracking-wide">
                     MODULES
                   </div>
@@ -275,18 +305,18 @@ const FeaturedWorkSection = () => {
                     className="text-xs font-body text-emerald-200/60"
                     style={{ textShadow: "0 0 10px rgba(0,255,150,0.25)" }}
                   >
-                    click to preview
+                    tap to preview
                   </div>
                 </div>
 
-                <div className="space-y-3 font-heading ">
+                <div className="space-y-2 sm:space-y-3 font-heading">
                   {items.map((it, idx) => {
                     const isActive = idx === activeIndex;
                     return (
                       <button
                         key={it.title}
                         type="button"
-                        className={`k-focus w-full text-left group cursor-pointer rounded-xl px-4 py-4 border transition-all duration-300 ${
+                        className={`k-focus w-full text-left group cursor-pointer rounded-xl px-4 py-3 sm:py-4 border transition-all duration-300 ${
                           isActive
                             ? "border-emerald-400/60 bg-emerald-500/10"
                             : "border-emerald-500/15 bg-black/15 hover:bg-emerald-500/5 hover:border-emerald-400/40"
@@ -298,7 +328,8 @@ const FeaturedWorkSection = () => {
                             <div
                               className="text-2xl"
                               style={{
-                                filter: "drop-shadow(0 0 12px rgba(0,255,150,0.45))",
+                                filter:
+                                  "drop-shadow(0 0 12px rgba(0,255,150,0.45))",
                                 transform: isActive ? "scale(1.06)" : "scale(1)",
                                 transition: "transform 250ms ease",
                               }}
@@ -306,7 +337,12 @@ const FeaturedWorkSection = () => {
                               {it.icon}
                             </div>
                             <div>
-                              <div className="text-emerald-100 font-heading text-xl font-bold">
+                              <div
+                                className="text-emerald-100 font-heading font-bold"
+                                style={{
+                                  fontSize: "clamp(1rem, 2.2vw, 1.25rem)",
+                                }}
+                              >
                                 {it.title}
                               </div>
                               <div className="text-emerald-100/55 font-body text-sm">
@@ -317,14 +353,15 @@ const FeaturedWorkSection = () => {
 
                           <div
                             className={`text-emerald-300 font-body font-semibold transition-all duration-300 ${
-                              isActive ? "opacity-100" : "opacity-40 group-hover:opacity-80"
+                              isActive
+                                ? "opacity-100"
+                                : "opacity-40 group-hover:opacity-80"
                             }`}
                           >
                             →
                           </div>
                         </div>
 
-                        {/* micro bar */}
                         <div className="mt-3 h-[2px] w-full bg-emerald-500/10 overflow-hidden rounded-full">
                           <div
                             className="h-full bg-gradient-to-r from-emerald-300/0 via-emerald-300/70 to-emerald-300/0"
@@ -343,7 +380,7 @@ const FeaturedWorkSection = () => {
               </div>
             </div>
 
-            {/* Right: Big Preview Panel */}
+            {/* Right: Preview Panel */}
             <div className="lg:col-span-8">
               <div
                 className="relative rounded-3xl overflow-hidden border border-emerald-500/20 backdrop-blur-sm"
@@ -354,32 +391,21 @@ const FeaturedWorkSection = () => {
                     "0 0 60px rgba(0,255,150,0.12), 0 0 120px rgba(0,255,150,0.06)",
                 }}
               >
-                {/* sonar rings */}
+                {/* sonar rings (responsive size) */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div
-                    className="absolute left-1/2 top-1/2 w-[520px] h-[520px] rounded-full"
-                    style={{
-                      border: "1px solid rgba(110,255,210,0.20)",
-                      filter: "blur(0px)",
-                      animation: "pulse-ring 2.8s ease-out infinite",
-                    }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 w-[520px] h-[520px] rounded-full"
-                    style={{
-                      border: "1px solid rgba(110,255,210,0.16)",
-                      animation: "pulse-ring 2.8s ease-out infinite",
-                      animationDelay: "0.9s",
-                    }}
-                  />
-                  <div
-                    className="absolute left-1/2 top-1/2 w-[520px] h-[520px] rounded-full"
-                    style={{
-                      border: "1px solid rgba(110,255,210,0.12)",
-                      animation: "pulse-ring 2.8s ease-out infinite",
-                      animationDelay: "1.8s",
-                    }}
-                  />
+                  {["0s", "0.9s", "1.8s"].map((delay, i) => (
+                    <div
+                      key={i}
+                      className="absolute left-1/2 top-1/2 rounded-full"
+                      style={{
+                        width: "min(520px, 86vw)",
+                        height: "min(520px, 86vw)",
+                        border: `1px solid rgba(110,255,210,${0.2 - i * 0.04})`,
+                        animation: "pulse-ring 2.8s ease-out infinite",
+                        animationDelay: delay,
+                      }}
+                    />
+                  ))}
                 </div>
 
                 {/* scanline */}
@@ -399,10 +425,10 @@ const FeaturedWorkSection = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/30 via-transparent to-teal-900/20" />
 
-                <div className="relative p-8 md:p-10">
-                  <div className="flex items-start justify-between gap-6">
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
+                <div className="relative p-5 sm:p-8 md:p-10">
+                  <div className="flex items-start justify-between gap-4 sm:gap-6">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
                         <span className="px-3 py-1 rounded-full text-xs font-bold text-black bg-gradient-to-r from-emerald-400 to-teal-300 shadow-lg shadow-emerald-500/25">
                           {active.tag}
                         </span>
@@ -412,22 +438,27 @@ const FeaturedWorkSection = () => {
                       </div>
 
                       <h3
-                        className="text-4xl md:text-5xl font-bold font-heading text-emerald-100"
+                        className="font-bold font-heading text-emerald-100"
                         style={{
+                          fontSize: "clamp(1.6rem, 3.6vw, 3rem)",
                           textShadow: "0 0 25px rgba(0,255,150,0.30)",
                         }}
                       >
                         {active.title}
                       </h3>
 
-                      <p className="mt-4 text-emerald-100/70 font-body text-lg max-w-2xl">
+                      <p
+                        className="mt-3 sm:mt-4 text-emerald-100/70 font-body max-w-2xl"
+                        style={{ fontSize: "clamp(1rem, 2.2vw, 1.125rem)" }}
+                      >
                         {active.blurb}
                       </p>
                     </div>
 
                     <div
-                      className="text-5xl md:text-6xl"
+                      className="shrink-0"
                       style={{
+                        fontSize: "clamp(2.2rem, 5vw, 3.75rem)",
                         filter: "drop-shadow(0 0 14px rgba(0,255,150,0.45))",
                       }}
                     >
@@ -435,8 +466,8 @@ const FeaturedWorkSection = () => {
                     </div>
                   </div>
 
-                  {/* mini “signals” */}
-                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* stats */}
+                  <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     {active.stats.map((label) => (
                       <div
                         key={label}
@@ -463,7 +494,7 @@ const FeaturedWorkSection = () => {
                   </div>
 
                   {/* CTA row */}
-                  <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                  <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-5">
                     <div className="text-emerald-100/55 font-body text-sm">
                       Tip: Use the selector on the left to switch modules instantly.
                     </div>
@@ -471,10 +502,8 @@ const FeaturedWorkSection = () => {
                     <button
                       type="button"
                       onClick={() => goToLibrary(active.category)}
-                      className="px-6 py-3 rounded-full font-body font-bold text-black cursor-pointer bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 transition-all duration-300 shadow-lg shadow-emerald-500/25"
-                      style={{
-                        boxShadow: "0 0 22px rgba(0,255,150,0.35)",
-                      }}
+                      className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-body font-bold text-black cursor-pointer bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 transition-all duration-300 shadow-lg shadow-emerald-500/25"
+                      style={{ boxShadow: "0 0 22px rgba(0,255,150,0.35)" }}
                     >
                       Open Library →
                     </button>
@@ -482,8 +511,8 @@ const FeaturedWorkSection = () => {
                 </div>
 
                 {/* corner brackets */}
-                <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-emerald-400/40 rounded-tr-2xl" />
-                <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-emerald-400/40 rounded-bl-2xl" />
+                <div className="absolute top-4 right-4 w-12 h-12 sm:w-16 sm:h-16 border-t-2 border-r-2 border-emerald-400/40 rounded-tr-2xl" />
+                <div className="absolute bottom-4 left-4 w-12 h-12 sm:w-16 sm:h-16 border-b-2 border-l-2 border-emerald-400/40 rounded-bl-2xl" />
               </div>
             </div>
           </div>

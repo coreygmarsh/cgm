@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 // ✅ adjust this path to your real file location
 import { projects } from "../../pages/projectsData";
 
-
 const BlogStoriesSection = () => {
   const containerRef = useRef(null);
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ const BlogStoriesSection = () => {
   const [hovered, setHovered] = useState(null);
 
   // =========================
-  // RED shader background (UNCHANGED)
+  // RED shader background (responsive sizing, desktop unchanged)
   // =========================
   useEffect(() => {
     if (!containerRef.current) return;
@@ -129,8 +128,12 @@ const BlogStoriesSection = () => {
       fragmentShader,
       uniforms: {
         time: { value: 0 },
+        // ✅ match container size (not window)
         resolution: {
-          value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+          value: new THREE.Vector2(
+            containerRef.current.clientWidth,
+            containerRef.current.clientHeight
+          ),
         },
       },
       transparent: true,
@@ -156,9 +159,14 @@ const BlogStoriesSection = () => {
       renderer.setSize(width, height);
       material.uniforms.resolution.value.set(width, height);
     };
+
+    // ✅ better on mobile: picks up height changes + font/layout shifts
+    const ro = new ResizeObserver(handleResize);
+    ro.observe(containerRef.current);
     window.addEventListener("resize", handleResize);
 
     return () => {
+      ro.disconnect();
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
@@ -182,7 +190,7 @@ const BlogStoriesSection = () => {
       .replace(/^-+|-+$/g, "");
 
   // =========================
-  // ✅ Pull ONLY Articles + Books from projectsData.jsx projects array
+  // Pull ONLY Articles + Books from projects
   // =========================
   const posts = useMemo(() => {
     const arr = Array.isArray(projects) ? projects : [];
@@ -192,11 +200,6 @@ const BlogStoriesSection = () => {
       const tags = Array.isArray(p?.tags)
         ? p.tags.map((t) => String(t).toLowerCase())
         : [];
-
-      // ✅ Accept a few common schemas:
-      // type: "Article" | "Book"
-      // category: "Articles" | "Books"
-      // tags: ["article"] etc.
       return (
         type.includes("articles") ||
         type.includes("books") ||
@@ -217,27 +220,11 @@ const BlogStoriesSection = () => {
 
       const date = p?.date ?? p?.published ?? p?.year ?? "";
       const mins = p?.mins ?? p?.readTime ?? p?.readingTime ?? "";
+      const blurb = p?.blurb ?? p?.excerpt ?? p?.description ?? p?.summary ?? "";
 
-      const blurb =
-        p?.blurb ?? p?.excerpt ?? p?.description ?? p?.summary ?? "";
-
-      // If your data already has a slug, use it. Otherwise generate from title.
       const slug = p?.slug ?? slugify(title);
-
-      // If your projects have an internal route, use it (e.g. "/read/overcoming-oversaturation")
-      const route =
-        p?.route ??
-        p?.path ??
-        p?.urlPath ??
-        null; // we’ll fallback to `/read/${slug}`
-
-      // If your projects have an external link (PDF, Medium, Substack, Gumroad, etc.)
-      const external =
-        p?.externalUrl ??
-        p?.href ??
-        p?.link ??
-        p?.url ??
-        null;
+      const route = p?.route ?? p?.path ?? p?.urlPath ?? null;
+      const external = p?.externalUrl ?? p?.href ?? p?.link ?? p?.url ?? null;
 
       return {
         ...p,
@@ -255,33 +242,24 @@ const BlogStoriesSection = () => {
     return arr.filter(isArticleOrBook).map(normalize);
   }, []);
 
-  // Keep active index valid if posts change
   useEffect(() => {
     if (!posts.length) return;
-    setActive((prev) => {
-      if (prev < 0) return 0;
-      if (prev > posts.length - 1) return 0;
-      return prev;
-    });
+    setActive((prev) => (prev < 0 || prev > posts.length - 1 ? 0 : prev));
   }, [posts.length]);
 
   const nodes = useMemo(() => {
-    // If you have less than 5 posts, we still show that many nodes
     const count = Math.max(1, Math.min(posts.length || 1, 5));
-
     const fixed = [
-      { x: 68, y: 22 }, // 0
-      { x: 22, y: 28 }, // 1
-      { x: 52, y: 52 }, // 2
-      { x: 30, y: 72 }, // 3
-      { x: 72, y: 76 }, // 4
+      { x: 68, y: 22 },
+      { x: 22, y: 28 },
+      { x: 52, y: 52 },
+      { x: 30, y: 72 },
+      { x: 72, y: 76 },
     ];
-
     return fixed.slice(0, count).map((p, i) => ({ ...p, i }));
   }, [posts.length]);
 
   const links = useMemo(() => {
-    // Only connect links that exist for current node count
     const base = [
       [0, 2],
       [1, 2],
@@ -295,37 +273,24 @@ const BlogStoriesSection = () => {
 
   const current = posts[active];
 
-  // =========================
-  // ✅ "Read Story" navigation logic
-  // =========================
   const openPost = (p) => {
     if (!p) return;
-
-    // 1) External link (PDF, Medium, etc.)
     if (p.__external) {
       window.open(p.__external, "_blank", "noopener,noreferrer");
       return;
     }
-
-    // 2) Explicit route in your data
     if (p.__route) {
       navigate(p.__route);
       return;
     }
-
-    // 3) Default internal route based on slug
-    // Make sure your router has a matching route like: <Route path="/read/:slug" element={<ReadPage />} />
     navigate(`/library`);
   };
 
-  // =========================
-  // UI
-  // =========================
   if (!posts.length) {
     return (
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+      <section className="relative overflow-hidden bg-black py-16 sm:py-20 md:py-24">
         <div ref={containerRef} className="absolute inset-0" />
-        <div className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
+        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-5xl font-bold text-rose-100 font-heading">
             STORIES &amp; INSIGHTS
           </h2>
@@ -370,13 +335,14 @@ const BlogStoriesSection = () => {
         }
       `}</style>
 
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
+      {/* ✅ Phone-friendly section height; desktop feel unchanged */}
+      <section className="relative bg-black overflow-hidden py-16 sm:py-20 md:py-24">
         {/* fades */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
         <div ref={containerRef} className="absolute inset-0" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
-        {/* subtle overlay grid/vignette */}
+        {/* overlay grid/vignette */}
         <div className="absolute inset-0 pointer-events-none">
           <div
             className="absolute inset-0 opacity-25"
@@ -393,7 +359,7 @@ const BlogStoriesSection = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/70" />
         </div>
 
-        {/* particles (red) */}
+        {/* particles */}
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(18)].map((_, i) => (
             <div
@@ -411,11 +377,13 @@ const BlogStoriesSection = () => {
           ))}
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 w-full">
-          {/* Header */}
+        {/* ✅ Constrain width + responsive title sizing */}
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
           <h2
-            className="text-9xl md:text-8xl font-bold text-center mb-6 text-transparent font-heading bg-clip-text bg-gradient-to-r from-red-400 via-rose-400 to-red-300"
+            className="font-bold text-center mb-5 sm:mb-6 text-transparent font-heading bg-clip-text bg-gradient-to-r from-red-400 via-rose-400 to-red-300"
             style={{
+              fontSize: "clamp(2.2rem, 6vw, 6rem)", // ✅ fixes huge phone text
+              lineHeight: 1.05,
               textShadow: "0 0 30px rgba(255, 70, 90, 0.55)",
               filter: "drop-shadow(0 0 18px rgba(255, 70, 90, 0.6))",
             }}
@@ -424,32 +392,51 @@ const BlogStoriesSection = () => {
           </h2>
 
           <p
-            className="text-xl text-rose-100/80 text-center font-body mb-12 max-w-3xl mx-auto"
-            style={{ textShadow: "0 0 10px rgba(255, 70, 90, 0.18)" }}
+            className="text-rose-100/80 text-center font-body mb-10 sm:mb-12 mx-auto"
+            style={{
+              fontSize: "clamp(1rem, 2.2vw, 1.25rem)",
+              maxWidth: 720,
+              textShadow: "0 0 10px rgba(255, 70, 90, 0.18)",
+            }}
           >
             A living map of ideas—tap a signal, follow the thread, and read what
             surfaced.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-stretch">
             {/* LEFT: Constellation Map */}
             <div className="relative rounded-3xl border border-rose-400/20 bg-black/20 backdrop-blur-sm overflow-hidden">
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -inset-24 bg-rose-500/10 blur-3xl" />
               </div>
 
+              {/* ✅ rings become responsive */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 <div
-                  className="w-[520px] h-[520px] rounded-full border border-rose-400/15"
-                  style={{ boxShadow: "0 0 70px rgba(255,70,90,0.10)" }}
+                  className="rounded-full border border-rose-400/15"
+                  style={{
+                    width: "min(520px, 86vw)",
+                    height: "min(520px, 86vw)",
+                    boxShadow: "0 0 70px rgba(255,70,90,0.10)",
+                  }}
                 />
-                <div className="absolute w-[360px] h-[360px] rounded-full border border-rose-400/10" />
+                <div
+                  className="absolute rounded-full border border-rose-400/10"
+                  style={{
+                    width: "min(360px, 62vw)",
+                    height: "min(360px, 62vw)",
+                  }}
+                />
               </div>
 
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                 <div
-                  className="relative w-[520px] h-[520px]"
-                  style={{ animation: "orbit 18s linear infinite" }}
+                  className="relative"
+                  style={{
+                    width: "min(520px, 86vw)",
+                    height: "min(520px, 86vw)",
+                    animation: "orbit 18s linear infinite",
+                  }}
                 >
                   {[...Array(10)].map((_, i) => (
                     <div
@@ -485,11 +472,14 @@ const BlogStoriesSection = () => {
                 })}
               </svg>
 
-              <div className="relative w-full h-[520px] sm:h-[560px]">
+              {/* ✅ map area adapts to screen */}
+              <div
+                className="relative w-full"
+                style={{ height: "clamp(360px, 60vh, 560px)" }}
+              >
                 {nodes.map((n) => {
                   const isActive = active === n.i;
                   const isHover = hovered === n.i;
-
                   const labelTitle = posts[n.i]?.__title ?? "";
 
                   return (
@@ -539,13 +529,18 @@ const BlogStoriesSection = () => {
                         </span>
                       </div>
 
+                      {/* ✅ label width scales down for phones */}
                       <div
-                        className="absolute left-1/2 top-[110%] -translate-x-1/2 w-[220px] text-center"
-                        style={{ pointerEvents: "none" }}
+                        className="absolute left-1/2 top-[110%] -translate-x-1/2 text-center"
+                        style={{
+                          width: "min(220px, 62vw)",
+                          pointerEvents: "none",
+                        }}
                       >
                         <div
-                          className="font-body text-sm"
+                          className="font-body"
                           style={{
+                            fontSize: "clamp(0.75rem, 2.4vw, 0.95rem)",
                             color: isActive
                               ? "rgba(255,240,245,0.95)"
                               : "rgba(255,210,220,0.72)",
@@ -568,11 +563,11 @@ const BlogStoriesSection = () => {
                 })}
               </div>
 
-              <div className="absolute bottom-5 left-6 right-6 flex items-center justify-between">
-                <div className="text-xs uppercase tracking-widest text-rose-200/70 font-body">
+              <div className="absolute bottom-4 sm:bottom-5 left-4 sm:left-6 right-4 sm:right-6 flex items-center justify-between">
+                <div className="text-[10px] sm:text-xs uppercase tracking-widest text-rose-200/70 font-body">
                   Tap nodes • Explore threads
                 </div>
-                <div className="text-xs text-rose-200/60 font-body">
+                <div className="text-[10px] sm:text-xs text-rose-200/60 font-body">
                   {active + 1} / {posts.length}
                 </div>
               </div>
@@ -596,8 +591,8 @@ const BlogStoriesSection = () => {
                 style={{ boxShadow: "inset 0 0 60px rgba(255,70,90,0.12)" }}
               />
 
-              <div className="p-9">
-                <div className="flex items-center justify-between mb-6">
+              <div className="p-5 sm:p-7 md:p-9">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-5 sm:mb-6">
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold text-black bg-gradient-to-r from-red-400 to-rose-300 font-heading"
                     style={{ boxShadow: "0 0 16px rgba(255,70,90,0.35)" }}
@@ -605,7 +600,10 @@ const BlogStoriesSection = () => {
                     {current?.__tag}
                   </span>
 
-                  <div className="text-sm text-rose-200/70 font-body">
+                  <div
+                    className="text-rose-200/70 font-body"
+                    style={{ fontSize: "clamp(0.85rem, 2vw, 0.95rem)" }}
+                  >
                     {current?.__date}
                     {current?.__date && current?.__mins ? " • " : ""}
                     {current?.__mins}
@@ -613,18 +611,24 @@ const BlogStoriesSection = () => {
                 </div>
 
                 <h3
-                  className="text-4xl md:text-5xl font-bold text-rose-50 font-heading mb-4"
-                  style={{ textShadow: "0 0 18px rgba(255,70,90,0.22)" }}
+                  className="font-bold text-rose-50 font-heading mb-4"
+                  style={{
+                    fontSize: "clamp(1.5rem, 3.6vw, 3rem)",
+                    textShadow: "0 0 18px rgba(255,70,90,0.22)",
+                  }}
                 >
                   {current?.__title}
                 </h3>
 
-                <p className="text-rose-100/75 font-body text-lg leading-relaxed">
+                <p
+                  className="text-rose-100/75 font-body leading-relaxed"
+                  style={{ fontSize: "clamp(1rem, 2.2vw, 1.125rem)" }}
+                >
                   {current?.__blurb}
                 </p>
 
                 <div
-                  className="mt-8 rounded-2xl border border-rose-400/15 bg-black/30 p-5"
+                  className="mt-7 sm:mt-8 rounded-2xl border border-rose-400/15 bg-black/30 p-4 sm:p-5"
                   style={{ animation: "glowPulseRed 4.2s ease-in-out infinite" }}
                 >
                   <div className="flex items-center justify-between">
@@ -654,7 +658,7 @@ const BlogStoriesSection = () => {
                   </div>
                 </div>
 
-                <div className="mt-8 flex items-center gap-4">
+                <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => openPost(current)}
@@ -674,8 +678,8 @@ const BlogStoriesSection = () => {
                 </div>
               </div>
 
-              <div className="absolute top-4 right-4 w-14 h-14 border-t-2 border-r-2 border-rose-300/40 rounded-tr-2xl" />
-              <div className="absolute bottom-4 left-4 w-14 h-14 border-b-2 border-l-2 border-rose-300/40 rounded-bl-2xl" />
+              <div className="absolute top-4 right-4 w-12 h-12 sm:w-14 sm:h-14 border-t-2 border-r-2 border-rose-300/40 rounded-tr-2xl" />
+              <div className="absolute bottom-4 left-4 w-12 h-12 sm:w-14 sm:h-14 border-b-2 border-l-2 border-rose-300/40 rounded-bl-2xl" />
             </div>
           </div>
         </div>

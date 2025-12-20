@@ -1,6 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
-import * as THREE from 'three';
+import React, { useRef, useEffect, useState } from "react";
+import * as THREE from "three";
 import { Link } from "react-router-dom";
+
 const UnderwaterHero = () => {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
@@ -9,10 +10,16 @@ const UnderwaterHero = () => {
 
   const [isHovering, setIsHovering] = useState(false);
 
-  // NEW: cursor spotlight + parallax
+  // cursor spotlight + parallax
   const [spot, setSpot] = useState({ x: 50, y: 50 });
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
   const [ripples, setRipples] = useState([]);
+
+  // Touch devices: enable "hover strength" feel by default
+  useEffect(() => {
+    const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    if (isTouch) setIsHovering(true);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -22,7 +29,10 @@ const UnderwaterHero = () => {
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    renderer.setSize(
+      containerRef.current.clientWidth,
+      containerRef.current.clientHeight
+    );
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerRef.current.appendChild(renderer.domElement);
 
@@ -150,10 +160,15 @@ const UnderwaterHero = () => {
         time: { value: 0 },
         mouse: { value: new THREE.Vector2(0.5, 0.5) },
         hoverStrength: { value: 0 },
-        resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+        resolution: {
+          value: new THREE.Vector2(
+            containerRef.current.clientWidth,
+            containerRef.current.clientHeight
+          ),
+        },
       },
       transparent: true,
-      blending: THREE.AdditiveBlending
+      blending: THREE.AdditiveBlending,
     });
 
     const geometry = new THREE.PlaneGeometry(2, 2);
@@ -169,25 +184,30 @@ const UnderwaterHero = () => {
       material.uniforms.time.value += 0.01;
 
       const targetHover = isHovering ? 1 : 0;
-      material.uniforms.hoverStrength.value += (targetHover - material.uniforms.hoverStrength.value) * 0.05;
+      material.uniforms.hoverStrength.value +=
+        (targetHover - material.uniforms.hoverStrength.value) * 0.05;
 
-      material.uniforms.mouse.value.x += (mousePos.current.x - material.uniforms.mouse.value.x) * 0.1;
-      material.uniforms.mouse.value.y += (mousePos.current.y - material.uniforms.mouse.value.y) * 0.1;
+      material.uniforms.mouse.value.x +=
+        (mousePos.current.x - material.uniforms.mouse.value.x) * 0.1;
+      material.uniforms.mouse.value.y +=
+        (mousePos.current.y - material.uniforms.mouse.value.y) * 0.1;
 
       renderer.render(scene, camera);
     };
     animate();
 
     const handleResize = () => {
+      if (!containerRef.current) return;
       const width = containerRef.current.clientWidth;
       const height = containerRef.current.clientHeight;
       renderer.setSize(width, height);
       material.uniforms.resolution.value.set(width, height);
     };
-    window.addEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
       geometry.dispose();
@@ -199,30 +219,66 @@ const UnderwaterHero = () => {
   }, [isHovering]);
 
   const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = 1 - (e.clientY - rect.top) / rect.height;
 
-    // Keep your shader mouse tracking EXACTLY the same
     mousePos.current = { x, y };
 
-    // NEW: spotlight position (css)
-    setSpot({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
+    setSpot({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
 
-    // NEW: subtle parallax for center content
-    const dx = (x - 0.5);
-    const dy = (y - 0.5);
+    const dx = x - 0.5;
+    const dy = y - 0.5;
     setTilt({
       rx: Math.max(-8, Math.min(8, -dy * 10)),
       ry: Math.max(-10, Math.min(10, dx * 12)),
     });
   };
 
-  // NEW: click ripple (engaging but doesn’t change reveal)
+  // Touch move support for spotlight/tilt
+  const handleTouchMove = (e) => {
+    if (!containerRef.current || !e.touches?.[0]) return;
+    const t = e.touches[0];
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (t.clientX - rect.left) / rect.width;
+    const y = 1 - (t.clientY - rect.top) / rect.height;
+
+    mousePos.current = { x, y };
+    setSpot({
+      x: ((t.clientX - rect.left) / rect.width) * 100,
+      y: ((t.clientY - rect.top) / rect.height) * 100,
+    });
+
+    const dx = x - 0.5;
+    const dy = y - 0.5;
+    setTilt({
+      rx: Math.max(-6, Math.min(6, -dy * 9)),
+      ry: Math.max(-8, Math.min(8, dx * 10)),
+    });
+  };
+
   const handleClick = (e) => {
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const id = `${Date.now()}-${Math.random()}`;
+    setRipples((r) => [...r, { id, x, y }]);
+    setTimeout(() => {
+      setRipples((r) => r.filter((rp) => rp.id !== id));
+    }, 900);
+  };
+
+  const handleTouchStart = (e) => {
+    if (!containerRef.current || !e.touches?.[0]) return;
+    const t = e.touches[0];
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((t.clientX - rect.left) / rect.width) * 100;
+    const y = ((t.clientY - rect.top) / rect.height) * 100;
     const id = `${Date.now()}-${Math.random()}`;
     setRipples((r) => [...r, { id, x, y }]);
     setTimeout(() => {
@@ -250,7 +306,11 @@ const UnderwaterHero = () => {
   }, []);
 
   return (
-    <div ref={heroRef} className="relative w-full h-screen bg-black overflow-hidden" id="hero">
+    <div
+      ref={heroRef}
+      className="relative w-full bg-black overflow-hidden min-h-[100svh] md:h-screen"
+      id="hero"
+    >
       <style>{`
         @keyframes fadeSlide {
           from { opacity: 0; transform: translateY(12px); }
@@ -314,7 +374,7 @@ const UnderwaterHero = () => {
         }
       `}</style>
 
-      {/* Video Background (UNCHANGED) */}
+      {/* Video Background */}
       <div className="absolute inset-0 flex items-center justify-center">
         <video
           autoPlay
@@ -328,22 +388,23 @@ const UnderwaterHero = () => {
         </video>
       </div>
 
-      {/* NEW: subtle HUD grid overlay (doesn’t alter your backgrounds, just adds depth) */}
+      {/* HUD grid overlay */}
       <div className="absolute inset-0 hero-hud-grid pointer-events-none" />
 
-      {/* Shader Water Overlay (UNCHANGED behavior) */}
+      {/* Shader Water Overlay */}
       <div
         ref={containerRef}
         className="absolute inset-0 cursor-pointer"
         onMouseMove={handleMouseMove}
+        onTouchMove={handleTouchMove}
         onClick={handleClick}
+        onTouchStart={handleTouchStart}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       />
 
-      {/* NEW: cursor spotlight & scanline layer (pure overlay) */}
+      {/* spotlight & scanline layer */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* spotlight */}
         <div
           className="absolute inset-0"
           style={{
@@ -353,18 +414,19 @@ const UnderwaterHero = () => {
             opacity: isHovering ? 1 : 0.65,
           }}
         />
-        {/* scan line */}
+
         <div
           className="absolute inset-x-0 h-[180px]"
           style={{
             top: "10%",
-            background: "linear-gradient(to bottom, transparent, rgba(0,255,255,0.12), transparent)",
+            background:
+              "linear-gradient(to bottom, transparent, rgba(0,255,255,0.12), transparent)",
             filter: "blur(0.6px)",
             animation: "scanLine 6.5s ease-in-out infinite",
             opacity: 0.75,
           }}
         />
-        {/* click ripples */}
+
         {ripples.map((r) => (
           <div
             key={r.id}
@@ -382,26 +444,24 @@ const UnderwaterHero = () => {
         ))}
       </div>
 
-      {/* Gradient fade at bottom (UNCHANGED) */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
-      {/* Content (same text, NEW: glass HUD container + parallax tilt) */}
+      {/* Content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white pointer-events-none">
         <div
-          className="relative hero-glass hero-corners rounded-[28px] px-10 py-10 md:px-14 md:py-12"
+          className="relative hero-glass hero-corners rounded-[28px] px-5 py-6 sm:px-8 sm:py-8 md:px-14 md:py-12"
           style={{
             transform: `perspective(1100px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
             transition: "transform 120ms ease-out",
             maxWidth: "min(980px, 92vw)",
           }}
         >
-          {/* shimmer strip */}
           <div className="absolute inset-0 hero-shimmer opacity-40 pointer-events-none rounded-[28px]" />
 
-          {/* top micro-label */}
-          <div className="flex items-center justify-center mb-5">
+          <div className="flex items-center justify-center mb-4 sm:mb-5">
             <span
-              className="px-4 py-1.5 rounded-full text-xs font-bold tracking-[0.28em] font-heading uppercase text-black bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-300"
+              className="px-3 sm:px-4 py-1.5 rounded-full text-[8px] sm:text-xs font-bold tracking-[0.28em] font-heading uppercase text-black bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-300"
               style={{ boxShadow: "0 0 22px rgba(0,255,255,0.75)" }}
             >
               Portfolio • Motion • Color • Sound
@@ -409,10 +469,13 @@ const UnderwaterHero = () => {
           </div>
 
           <h1
-            className="text-7xl md:text-8xl font-bold mb-4 text-transparent font-heading bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 text-center"
+            className="font-bold mb-3 sm:mb-4 text-transparent font-heading bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 text-center"
             style={{
-              textShadow: '0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3)',
-              filter: 'drop-shadow(0 0 10px rgba(0, 255, 255, 0.7))'
+              fontSize: "clamp(2.2rem, 6vw, 6rem)",
+              lineHeight: 1.05,
+              textShadow:
+                "0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3)",
+              filter: "drop-shadow(0 0 10px rgba(0, 255, 255, 0.7))",
             }}
           >
             COREY G. MARSH
@@ -420,30 +483,34 @@ const UnderwaterHero = () => {
 
           <p
             key={activePhrase}
-            className="text-3xl md:text-4xl bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 tracking-widest font-heading uppercase mb-4 transition-all duration-700 text-center"
+            className="bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 tracking-widest font-heading uppercase mb-3 sm:mb-4 transition-all duration-700 text-center"
             style={{
-              textShadow: '0 0 10px rgba(0, 255, 255, 0.8)',
-              animation: 'fadeSlide 700ms ease',
+              fontSize: "clamp(1.05rem, 3.2vw, 2.25rem)",
+              textShadow: "0 0 10px rgba(0, 255, 255, 0.8)",
+              animation: "fadeSlide 700ms ease",
             }}
           >
             {phrases[activePhrase]}
           </p>
 
-          <div className="text-lg md:text-xl text-teal-200 text-center font-body ">
+          <div
+            className="text-teal-200 text-center font-body"
+            style={{ fontSize: "clamp(0.95rem, 2vw, 1.25rem)" }}
+          >
             <p className="opacity-80">Hover to explore the depths</p>
           </div>
 
-          {/* NEW: modern CTA row (engaging, still pointer-events-none container; buttons are pointer-events-auto) */}
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-4 pointer-events-auto">
+          <div className="mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4 pointer-events-auto">
             <Link
               to="#featured"
-              className="px-7 py-3 rounded-full font-body font-bold text-black bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 transition-all duration-300"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 rounded-full font-body font-bold text-black bg-gradient-to-r from-cyan-400 to-teal-400 hover:from-cyan-300 hover:to-teal-300 transition-all duration-300"
               style={{ boxShadow: "0 0 28px rgba(0,255,255,0.25)" }}
             >
               View Featured Work
             </Link>
-            <Link to="/contact"
-              className="px-7 py-3 rounded-full font-body font-bold text-cyan-100 border border-cyan-400/40 bg-black/30 hover:bg-black/45 transition-all duration-300"
+            <Link
+              to="/contact"
+              className="px-5 py-2.5 sm:px-7 sm:py-3 rounded-full font-body font-bold text-cyan-100 border border-cyan-400/40 bg-black/30 hover:bg-black/45 transition-all duration-300"
               style={{ boxShadow: "0 0 22px rgba(0,255,255,0.12)" }}
             >
               Hire Me
@@ -451,58 +518,54 @@ const UnderwaterHero = () => {
           </div>
         </div>
 
-        {/* NEW: scroll cue (super modern) */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="flex flex-col items-center gap-2" style={{ animation: "hudFloat 3.2s ease-in-out infinite" }}>
-            <span className="text-xs tracking-[0.35em] font-body uppercase text-cyan-200/70">Scroll</span>
+        {/* scroll cue */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-none hidden sm:block">
+          <div
+            className="flex flex-col items-center gap-2"
+            style={{ animation: "hudFloat 3.2s ease-in-out infinite" }}
+          >
+            <span className="text-xs tracking-[0.35em] font-body uppercase text-cyan-200/70">
+              Scroll
+            </span>
             <div className="w-[2px] h-12 bg-gradient-to-b from-cyan-400/70 via-cyan-400/25 to-transparent rounded-full" />
           </div>
         </div>
       </div>
 
-      {/* Social Icons (UNCHANGED) */}
-      <div className="absolute bottom-6 right-6 z-20 pointer-events-auto">
-        <div className="flex gap-3">
+      {/* Social Icons */}
+      <div className="absolute bottom-5 right-4 sm:bottom-6 sm:right-6 z-20 pointer-events-auto">
+        <div className="flex gap-2 sm:gap-3">
           <a
             href="https://music.apple.com/us/artist/the-downfall/1265793816"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative h-10 w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
+            className="group relative h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
             aria-label="Music"
           >
             <span className="absolute inset-0 rounded-full bg-cyan-400/30 scale-75 opacity-0 group-hover:scale-150 group-hover:opacity-40 transition-all duration-500 ease-out" />
-            <svg
-  className="relative h-5 w-5"
-  viewBox="0 0 24 24"
-  fill="currentColor"
->
-  <path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm3.6 6.2-4.7 1.3v5.3a1.9 1.9 0 1 1-1-1.7V7.9l5.7-1.6Z" />
-</svg>
+            <svg className="relative h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Zm3.6 6.2-4.7 1.3v5.3a1.9 1.9 0 1 1-1-1.7V7.9l5.7-1.6Z" />
+            </svg>
           </a>
 
           <a
             href="https://www.facebook.com/profile.php?id=61584493543524"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative h-10 w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
+            className="group relative h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
             aria-label="Facebook"
           >
             <span className="absolute inset-0 rounded-full bg-cyan-400/30 scale-75 opacity-0 group-hover:scale-150 group-hover:opacity-40 transition-all duration-500 ease-out" />
-            <svg
-  className="relative h-5 w-5"
-  viewBox="0 0 24 24"
-  fill="currentColor"
->
-  <path d="M13.5 9H15V6.5h-1.5c-2 0-3.5 1.2-3.5 3.6V12H8v2.5h2v6h2.5v-6H15l.4-2.5h-2.9v-1.6c0-.8.3-1.4 1-1.4Z" />
-</svg>
-
+            <svg className="relative h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13.5 9H15V6.5h-1.5c-2 0-3.5 1.2-3.5 3.6V12H8v2.5h2v6h2.5v-6H15l.4-2.5h-2.9v-1.6c0-.8.3-1.4 1-1.4Z" />
+            </svg>
           </a>
 
           <a
             href="https://www.linkedin.com/in/corey-marsh-02765732a/"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative h-10 w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
+            className="group relative h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-black/50 border border-cyan-400/40 flex items-center justify-center text-cyan-300 hover:text-slate-900 hover:bg-gradient-to-br hover:from-cyan-400 hover:to-teal-400 shadow-lg shadow-cyan-400/40 overflow-hidden transition-all duration-300"
             aria-label="LinkedIn"
           >
             <span className="absolute inset-0 rounded-full bg-cyan-400/30 scale-75 opacity-0 group-hover:scale-150 group-hover:opacity-40 transition-all duration-500 ease-out" />
@@ -510,13 +573,16 @@ const UnderwaterHero = () => {
               <rect x="4" y="4" width="16" height="16" rx="2" ry="2" stroke="currentColor" strokeWidth="1.5" />
               <rect x="7" y="10" width="2" height="6" fill="currentColor" />
               <circle cx="8" cy="8" r="1.1" fill="currentColor" />
-              <path d="M13 10h1.4a2 2 0 0 1 2 2v4h-2v-3.2c0-.65-.33-1-0.9-1-.57 0-.95.35-.95 1V16h-2v-6h2v1z" fill="currentColor" />
+              <path
+                d="M13 10h1.4a2 2 0 0 1 2 2v4h-2v-3.2c0-.65-.33-1-0.9-1-.57 0-.95.35-.95 1V16h-2v-6h2v1z"
+                fill="currentColor"
+              />
             </svg>
           </a>
         </div>
       </div>
 
-      {/* Particle effects overlay (kept exactly as you had) */}
+      {/* Particles overlay */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(20)].map((_, i) => (
           <div
@@ -527,7 +593,8 @@ const UnderwaterHero = () => {
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
               animationDuration: `${2 + Math.random() * 3}s`,
-              boxShadow: '0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.4)'
+              boxShadow:
+                "0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.4)",
             }}
           />
         ))}

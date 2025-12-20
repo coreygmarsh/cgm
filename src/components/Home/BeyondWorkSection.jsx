@@ -289,7 +289,8 @@ const BeyondWorkSection = () => {
         <div ref={containerRef} className="absolute inset-0" />
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none" />
 
-        <div className="relative z-10 w-screen py-32">
+        {/* ✅ responsiveness-only change: py scales down on small screens */}
+        <div className="relative z-10 w-screen py-16 sm:py-24 md:py-32">
           <div className="items-center overflow-visible">
             <div className="font-body">
               {/* Header */}
@@ -297,19 +298,20 @@ const BeyondWorkSection = () => {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-96 h-96 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
                 </div>
-                
+
+                {/* ✅ responsiveness-only: title scales down on phones, unchanged on desktop */}
                 <h2
-                  className="text-7xl md:text-8xl font-bold mb-4 text-transparent relative z-10 font-heading bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400"
+                  className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold mb-4 text-transparent relative z-10 font-heading bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400"
                   style={{
                     textShadow: "0 0 40px rgba(255, 215, 0, 0.8)",
                     filter: "drop-shadow(0 0 20px rgba(255, 215, 0, 1))",
                     animation: "shimmer 3s infinite",
-                    backgroundSize: "200% auto"
+                    backgroundSize: "200% auto",
                   }}
                 >
                   BEYOND THE WORK
                 </h2>
-                
+
                 <div className="flex items-center justify-center gap-3 mb-6">
                   <div className="h-px w-24 bg-gradient-to-r from-transparent to-yellow-500/50" />
                   <p
@@ -321,40 +323,47 @@ const BeyondWorkSection = () => {
                   <div className="h-px w-24 bg-gradient-to-l from-transparent to-yellow-500/50" />
                 </div>
 
-                <p className="text-amber-100/60 text-lg max-w-2xl mx-auto">
-                  Where passion meets purpose and pursuit fuels creative <span className="text-amber-300 font-bold italic font-heading">gold.</span>
+                {/* ✅ responsiveness-only: paragraph size scales down on phones */}
+                <p className="text-amber-100/60 text-base sm:text-lg max-w-2xl mx-auto">
+                  Where passion meets purpose and pursuit fuels creative{" "}
+                  <span className="text-amber-300 font-bold italic font-heading">
+                    gold.
+                  </span>
                 </p>
               </div>
 
               {/* Carousel */}
-                <div
-                  className="relative"
-                  style={{ background: "transparent", boxShadow: "none", border: "none" }}
-                >
-
+              <div
+                className="relative"
+                style={{ background: "transparent", boxShadow: "none", border: "none" }}
+              >
+                {/* ✅ responsiveness-only: gap + padding scale down on phones */}
                 <div
                   ref={carouselRef}
-                  className="hide-scrollbar flex gap-8 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory py-16 pb-20"
+                  className="hide-scrollbar flex gap-6 sm:gap-8 overflow-x-auto overflow-y-visible scroll-smooth snap-x snap-mandatory py-10 sm:py-16 pb-16 sm:pb-20"
                 >
                   {interests.map((card, idx) => (
                     <div
                       key={card.title}
-                      className="snap-center flex-shrink-0 w-[85%] sm:w-[45%] md:w-[42%] lg:w-[30%] card-3d"
+                      className="snap-center flex-shrink-0 w-[88%] sm:w-[45%] md:w-[42%] lg:w-[30%] card-3d"
                       style={{
                         animation: `float-card ${6 + idx * 0.5}s ease-in-out infinite`,
-                        animationDelay: `${idx * -1.5}s`
+                        animationDelay: `${idx * -1.5}s`,
                       }}
                       onMouseEnter={() => setHoveredIndex(idx)}
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
+                      {/* ✅ responsiveness-only: card height scales down on phones */}
                       <div
-                        className="card-inner relative h-[580px] rounded-3xl overflow-hidden backdrop-blur-md hologram-border"
-                        style={{ 
+                        className="card-inner relative h-[440px] sm:h-[520px] lg:h-[580px] rounded-3xl overflow-hidden backdrop-blur-md hologram-border"
+                        style={{
                           animation: "glow-pulse-gold 4s ease-in-out infinite",
-                          background: "linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 140, 0, 0.1) 100%)",
-                          border: hoveredIndex === idx 
-                            ? "2px solid rgba(255, 215, 0, 0.8)" 
-                            : "2px solid rgba(255, 215, 0, 0.4)"
+                          background:
+                            "linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 140, 0, 0.1) 100%)",
+                          border:
+                            hoveredIndex === idx
+                              ? "2px solid rgba(255, 215, 0, 0.8)"
+                              : "2px solid rgba(255, 215, 0, 0.4)",
                         }}
                       >
                         {/* Image */}
@@ -362,9 +371,12 @@ const BeyondWorkSection = () => {
                           src={card.image}
                           alt={card.title}
                           className="absolute inset-0 w-full h-full object-cover transition-all duration-700"
-                          style={{ 
+                          style={{
                             opacity: hoveredIndex === idx ? 0.45 : 0.25,
-                            filter: hoveredIndex === idx ? "saturate(1.3) contrast(1.1)" : "saturate(0.9)"
+                            filter:
+                              hoveredIndex === idx
+                                ? "saturate(1.3) contrast(1.1)"
+                                : "saturate(0.9)",
                           }}
                           loading="lazy"
                         />
@@ -384,17 +396,24 @@ const BeyondWorkSection = () => {
                         )}
 
                         {/* Content */}
-                        <div className="absolute inset-0 p-8 flex flex-col justify-between">
+                        {/* ✅ responsiveness-only: padding scales down on phones */}
+                        <div className="absolute inset-0 p-5 sm:p-7 md:p-8 flex flex-col justify-between">
                           {/* Top section with tag and icon */}
                           <div className="flex items-center justify-between">
                             <span className="px-4 py-1.5 rounded-full text-xs font-bold text-black bg-gradient-to-r from-yellow-400 to-amber-400 shadow-lg shadow-yellow-500/50">
                               {card.tag}
                             </span>
-                            <div 
-                              className="text-5xl transform transition-all duration-500"
+
+                            {/* ✅ responsiveness-only: icon size scales down on phones */}
+                            <div
+                              className="text-4xl sm:text-5xl transform transition-all duration-500"
                               style={{
-                                filter: "drop-shadow(0 0 10px rgba(255, 215, 0, 0.8))",
-                                transform: hoveredIndex === idx ? "scale(1.2) rotate(10deg)" : "scale(1)"
+                                filter:
+                                  "drop-shadow(0 0 10px rgba(255, 215, 0, 0.8))",
+                                transform:
+                                  hoveredIndex === idx
+                                    ? "scale(1.2) rotate(10deg)"
+                                    : "scale(1)",
                               }}
                             >
                               {card.icon}
@@ -402,23 +421,28 @@ const BeyondWorkSection = () => {
                           </div>
 
                           {/* Bottom section */}
-                          <div className="space-y-4">
+                          <div className="space-y-3 sm:space-y-4">
+                            {/* ✅ responsiveness-only: title scales down on phones */}
                             <h4
-                              className="text-3xl md:text-4xl font-heading uppercase font-bold italic text-white transition-all duration-500"
-                              style={{ 
-                                textShadow: hoveredIndex === idx 
-                                  ? "0 0 30px rgba(255, 215, 0, 0.9), 0 4px 20px rgba(0,0,0,0.9)" 
-                                  : "0 4px 15px rgba(0,0,0,0.95)",
-                                transform: hoveredIndex === idx ? "translateY(-5px)" : "translateY(0)"
+                              className="text-2xl sm:text-3xl md:text-4xl font-heading uppercase font-bold italic text-white transition-all duration-500"
+                              style={{
+                                textShadow:
+                                  hoveredIndex === idx
+                                    ? "0 0 30px rgba(255, 215, 0, 0.9), 0 4px 20px rgba(0,0,0,0.9)"
+                                    : "0 4px 15px rgba(0,0,0,0.95)",
+                                transform:
+                                  hoveredIndex === idx ? "translateY(-5px)" : "translateY(0)",
                               }}
                             >
                               {card.title}
                             </h4>
-                            <p 
-                              className="text-amber-100/90 text-base md:text-lg leading-relaxed transition-all duration-500"
-                              style={{ 
+
+                            {/* ✅ responsiveness-only: body text scales down on phones */}
+                            <p
+                              className="text-sm sm:text-base md:text-lg text-amber-100/90 leading-relaxed transition-all duration-500"
+                              style={{
                                 textShadow: "0 2px 12px rgba(0,0,0,1)",
-                                opacity: hoveredIndex === idx ? 1 : 0.85
+                                opacity: hoveredIndex === idx ? 1 : 0.85,
                               }}
                             >
                               {card.desc}
@@ -426,11 +450,15 @@ const BeyondWorkSection = () => {
                           </div>
 
                           {/* Tech corner brackets */}
-                          <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-yellow-400/60 rounded-tr-2xl transition-all duration-500"
-                               style={{ opacity: hoveredIndex === idx ? 1 : 0.4 }} />
-                          <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-yellow-400/60 rounded-bl-2xl transition-all duration-500"
-                               style={{ opacity: hoveredIndex === idx ? 1 : 0.4 }} />
-                          
+                          <div
+                            className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-yellow-400/60 rounded-tr-2xl transition-all duration-500"
+                            style={{ opacity: hoveredIndex === idx ? 1 : 0.4 }}
+                          />
+                          <div
+                            className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-yellow-400/60 rounded-bl-2xl transition-all duration-500"
+                            style={{ opacity: hoveredIndex === idx ? 1 : 0.4 }}
+                          />
+
                           {/* Additional corner accents */}
                           <div className="absolute top-4 left-4 w-3 h-3 border-t-2 border-l-2 border-yellow-400/80" />
                           <div className="absolute bottom-4 right-4 w-3 h-3 border-b-2 border-r-2 border-yellow-400/80" />
@@ -446,11 +474,12 @@ const BeyondWorkSection = () => {
                 </div>
 
                 {/* Navigation */}
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-5 z-20">
+                {/* ✅ responsiveness-only: buttons scale down on phones */}
+                <div className="absolute -bottom-3 sm:-bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-5 z-20">
                   <button
                     type="button"
                     onClick={() => scrollCarousel(-1)}
-                    className="w-12 h-12 pt-2 rounded-full cursor-pointer bg-gradient-to-br from-yellow-500/30 to-amber-600/30 backdrop-blur-xl border-2 border-yellow-400/60 text-yellow-100 hover:text-white hover:border-yellow-300 hover:scale-110 transition-all duration-300 flex items-center justify-center text-xl font-bold shadow-lg shadow-yellow-500/30"
+                    className="w-10 h-10 sm:w-12 sm:h-12 pt-2 rounded-full cursor-pointer bg-gradient-to-br from-yellow-500/30 to-amber-600/30 backdrop-blur-xl border-2 border-yellow-400/60 text-yellow-100 hover:text-white hover:border-yellow-300 hover:scale-110 transition-all duration-300 flex items-center justify-center text-xl font-bold shadow-lg shadow-yellow-500/30"
                     aria-label="Previous"
                   >
                     ←
@@ -458,7 +487,7 @@ const BeyondWorkSection = () => {
                   <button
                     type="button"
                     onClick={() => scrollCarousel(1)}
-                    className="w-12 h-12 pt-2 rounded-full cursor-pointer bg-gradient-to-br from-yellow-500/30 to-amber-600/30 backdrop-blur-xl border-2 border-yellow-400/60 text-yellow-100 hover:text-white hover:border-yellow-300 hover:scale-110 transition-all duration-300 flex items-center justify-center text-xl font-bold shadow-lg shadow-yellow-500/30"
+                    className="w-10 h-10 sm:w-12 sm:h-12 pt-2 rounded-full cursor-pointer bg-gradient-to-br from-yellow-500/30 to-amber-600/30 backdrop-blur-xl border-2 border-yellow-400/60 text-yellow-100 hover:text-white hover:border-yellow-300 hover:scale-110 transition-all duration-300 flex items-center justify-center text-xl font-bold shadow-lg shadow-yellow-500/30"
                     aria-label="Next"
                   >
                     →

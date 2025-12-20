@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { Link } from "react-router-dom";
+
 const Footer = () => {
   const containerRef = useRef(null);
 
@@ -168,7 +169,7 @@ const Footer = () => {
       {/* Purple/Pink Underwater shader background */}
       <div ref={containerRef} className="absolute inset-0 z-0" />
 
-      {/* ✅ Sonar rings (new) */}
+      {/* ✅ Sonar rings (unchanged) */}
       <div className="absolute inset-0 pointer-events-none z-[1]">
         <style>{`
           @keyframes sonar {
@@ -184,16 +185,13 @@ const Footer = () => {
           { left: "72%", top: "40%", delay: "1.6s", dur: "6.6s" },
           { left: "50%", top: "78%", delay: "3.0s", dur: "6.2s" },
         ].map((r, i) => (
-          <div
-            key={i}
-            className="absolute"
-            style={{ left: r.left, top: r.top }}
-          >
+          <div key={i} className="absolute" style={{ left: r.left, top: r.top }}>
+            {/* ✅ responsiveness-only: ring sizes now scale on small screens */}
             <div
               className="absolute rounded-full border border-fuchsia-300/25"
               style={{
-                width: 520,
-                height: 520,
+                width: "clamp(260px, 60vw, 520px)",
+                height: "clamp(260px, 60vw, 520px)",
                 animation: `sonar ${r.dur} ease-out infinite`,
                 animationDelay: r.delay,
                 boxShadow: "0 0 30px rgba(200, 0, 255, 0.12)",
@@ -204,8 +202,8 @@ const Footer = () => {
             <div
               className="absolute rounded-full border border-purple-400/20"
               style={{
-                width: 360,
-                height: 360,
+                width: "clamp(180px, 42vw, 360px)",
+                height: "clamp(180px, 42vw, 360px)",
                 animation: `sonar ${r.dur} ease-out infinite`,
                 animationDelay: `calc(${r.delay} + 0.35s)`,
                 boxShadow: "0 0 26px rgba(200, 0, 255, 0.10)",
@@ -219,13 +217,15 @@ const Footer = () => {
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
-        {/* ✅ Evenly justified 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-2 items-start">
+      {/* ✅ responsiveness-only: px/py scale down on small screens */}
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6 py-12 sm:py-16">
+        {/* ✅ responsiveness-only: alignments become left on mobile, centered on md */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12 mb-2 items-start">
           {/* 1) Brand Section */}
-          <div>
+          <div className="text-left">
+            {/* ✅ responsiveness-only: heading scales down on small screens */}
             <h3
-              className="text-4xl font-bold mb-6 mt text-transparent bg-clip-text font-heading bg-gradient-to-r from-purple-400 via-pink-300 to-fuchsia-400"
+              className="text-3xl sm:text-4xl font-bold mb-5 text-transparent bg-clip-text font-heading bg-gradient-to-r from-purple-400 via-pink-300 to-fuchsia-400"
               style={{
                 textShadow: "0 0 30px rgba(200, 0, 255, 0.6)",
                 filter: "drop-shadow(0 0 15px rgba(200, 0, 255, 0.8))",
@@ -234,8 +234,9 @@ const Footer = () => {
               COREY G. MARSH
             </h3>
 
+            {/* ✅ responsiveness-only: body size scales down on small screens */}
             <p
-              className="text-purple-100/70 text-xl max-w-sm font-body leading-relaxed"
+              className="text-purple-100/70 text-base sm:text-xl max-w-sm font-body leading-relaxed"
               style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.3)" }}
             >
               Creating immersive worlds of color and motion through video editing,
@@ -244,48 +245,51 @@ const Footer = () => {
             </p>
           </div>
 
-           {/* 2) Quick Links */}
-<div className="flex md:justify-center">
-  <div>
-    <h4
-      className="text-2xl font-bold font-heading uppercase text-purple-200 mb-2"
-      style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.4)" }}
-    >
-      Quick Links
-    </h4>
+          {/* 2) Quick Links */}
+          {/* ✅ responsiveness-only: left align on mobile, centered on md */}
+          <div className="flex md:justify-center">
+            <div className="text-left md:text-center">
+              <h4
+                className="text-xl sm:text-2xl font-bold font-heading uppercase text-purple-200 mb-2"
+                style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.4)" }}
+              >
+                Quick Links
+              </h4>
 
-    <ul className="space-y-2 text-center tracking-relaxed font-body text-lg">
-      {[
-        { label: "Home", to: "/" },
-        { label: "Work", to: "/library" },
-        { label: "Beyond", to: "/beyond" },
-        { label: "About", to: "/about" },
-        { label: "Contact", to: "/contact" },
-      ].map((link) => (
-        <li key={link.label}>
-          <Link
-            to={link.to}
-            className="text-purple-100/60 hover:text-purple-300 transition-colors duration-300"
-          >
-            {link.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  </div>
-</div>
+              {/* ✅ responsiveness-only: text size scales down on small screens */}
+              <ul className="space-y-2 tracking-relaxed font-body text-base sm:text-lg">
+                {[
+                  { label: "Home", to: "/" },
+                  { label: "Work", to: "/library" },
+                  { label: "Beyond", to: "/beyond" },
+                  { label: "About", to: "/about" },
+                  { label: "Contact", to: "/contact" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="text-purple-100/60 hover:text-purple-300 transition-colors duration-300"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           {/* 3) Services */}
+          {/* ✅ responsiveness-only: left align on mobile, right on md */}
           <div className="flex md:justify-end">
-            <div>
+            <div className="text-left md:text-center">
               <h4
-                className="text-2xl font-bold font-heading pointer-events-none text-center uppercase text-purple-200 mb-2"
+                className="text-xl sm:text-2xl font-bold font-heading pointer-events-none uppercase text-purple-200 mb-2"
                 style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.4)" }}
               >
                 Services
               </h4>
 
-              <ul className="space-y-2 text-lg text-center font-body">
+              <ul className="space-y-2 text-base sm:text-lg font-body">
                 {[
                   "Video Editing",
                   "Music Production",
@@ -305,13 +309,14 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
+        {/* ✅ responsiveness-only: link row wraps nicely on mobile */}
         <div className="pt-8 border-t font-heading border-purple-500/20">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <p className="text-purple-100/60 text-sm">
               © {currentYear} CGM Creative. All rights reserved.
             </p>
 
-            <div className="flex gap-6 text-sm">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
               <a
                 href="/privacy"
                 className="text-purple-100/60 hover:text-purple-300 transition-colors duration-300"

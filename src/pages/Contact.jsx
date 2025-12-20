@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from 'react';
-import * as THREE from 'three';
+import React, { useRef, useEffect, useState } from "react";
+import * as THREE from "three";
 
 const Contact = () => {
   const waterContainerRef = useRef(null);
@@ -16,12 +16,12 @@ const Contact = () => {
     email: "",
     projectType: "",
     budgetRange: "",
-    details: ""
+    details: "",
   });
 
   const [status, setStatus] = useState({
     state: "idle", // idle | sending | success | error
-    message: ""
+    message: "",
   });
 
   // Underwater shader effect - RED theme
@@ -168,10 +168,10 @@ const Contact = () => {
       material.uniforms.resolution.value.set(width, height);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
       geometry.dispose();
@@ -187,10 +187,21 @@ const Contact = () => {
     if (!gemContainerRef.current) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 400 / 400, 0.1, 1000);
+
+    // ✅ responsiveness-only: use container aspect instead of hardcoded 400/400
+    const getSize = () => {
+      const el = gemContainerRef.current;
+      const w = el?.clientWidth || 320;
+      const h = el?.clientHeight || 320;
+      return { w, h, aspect: w / h };
+    };
+
+    const { w: initW, h: initH, aspect: initAspect } = getSize();
+    const camera = new THREE.PerspectiveCamera(75, initAspect, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
-    renderer.setSize(400, 400);
+    // ✅ responsiveness-only: match renderer to container size
+    renderer.setSize(initW, initH);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     gemContainerRef.current.appendChild(renderer.domElement);
 
@@ -257,13 +268,25 @@ const Contact = () => {
       material.color.lerp(targetColor, 0.08);
 
       const targetEmissive = isGemHovered.current ? 0.9 : 0.2;
-      material.emissiveIntensity += (targetEmissive - material.emissiveIntensity) * 0.08;
+      material.emissiveIntensity +=
+        (targetEmissive - material.emissiveIntensity) * 0.08;
 
       renderer.render(scene, camera);
     };
     animate();
 
+    // ✅ responsiveness-only: resize gem renderer + camera aspect on window resize
+    const handleGemResize = () => {
+      if (!gemContainerRef.current) return;
+      const { w, h, aspect } = getSize();
+      renderer.setSize(w, h);
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+    };
+    window.addEventListener("resize", handleGemResize);
+
     return () => {
+      window.removeEventListener("resize", handleGemResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
       crownGeometry.dispose();
@@ -286,7 +309,8 @@ const Contact = () => {
     if (!FORMSPREE_ENDPOINT.includes("formspree.io")) {
       setStatus({
         state: "error",
-        message: "Form endpoint not set. Replace FORMSPREE_ENDPOINT with your Formspree URL."
+        message:
+          "Form endpoint not set. Replace FORMSPREE_ENDPOINT with your Formspree URL.",
       });
       return;
     }
@@ -296,21 +320,24 @@ const Contact = () => {
     try {
       const res = await fetch(FORMSPREE_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({
           name: form.name,
           email: form.email,
           projectType: form.projectType,
           budgetRange: form.budgetRange,
-          details: form.details
-        })
+          details: form.details,
+        }),
       });
 
       if (!res.ok) throw new Error("Request failed");
 
       setStatus({
         state: "success",
-        message: "Message sent. I’ll get back to you soon."
+        message: "Message sent. I’ll get back to you soon.",
       });
 
       setForm({
@@ -318,12 +345,12 @@ const Contact = () => {
         email: "",
         projectType: "",
         budgetRange: "",
-        details: ""
+        details: "",
       });
     } catch (err) {
       setStatus({
         state: "error",
-        message: "Something went wrong. Please try again, or email me directly."
+        message: "Something went wrong. Please try again, or email me directly.",
       });
     }
   };
@@ -334,31 +361,34 @@ const Contact = () => {
       <div ref={waterContainerRef} className="fixed inset-0 z-0" />
 
       {/* Content */}
-      <div className="relative z-10 pt-24 pb-20 px-6">
+      {/* ✅ responsiveness-only: px scales down on very small screens */}
+      <div className="relative z-10 pt-24 pb-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           {/* Hero Section with 3D Gem */}
           <div className="flex flex-col lg:flex-row items-center justify-between gap-12 mb-16">
             <div className="flex-1">
+              {/* ✅ responsiveness-only: heading scales down cleanly */}
               <h1
-                className="text-6xl md:text-7xl  text-shadow-red-500 text-shadow-xl  rounded-full font-bold mb-6 text-transparent bg-clip-text font-heading bg-gradient-to-r from-rose-400 via-red-300 to-orange-400"
+                className="text-5xl sm:text-6xl md:text-7xl text-shadow-red-500 text-shadow-xl rounded-full font-bold mb-6 text-transparent bg-clip-text font-heading bg-gradient-to-r from-rose-400 via-red-300 to-orange-400"
                 style={{
-                  textShadow: '0 0 30px rgba(248, 113, 113, 0.7)',
-                  filter: 'drop-shadow(0 0 15px rgba(248, 113, 113, 0.9))',
+                  textShadow: "0 0 30px rgba(248, 113, 113, 0.7)",
+                  filter: "drop-shadow(0 0 15px rgba(248, 113, 113, 0.9))",
                 }}
               >
                 CONTACT
               </h1>
               <p
-                className="text-xl font-body text-rose-100/85 mb-6 leading-relaxed"
-                style={{ textShadow: '0 0 10px rgba(248, 113, 113, 0.4)' }}
+                className="text-lg sm:text-xl font-body text-rose-100/85 mb-6 leading-relaxed"
+                style={{ textShadow: "0 0 10px rgba(248, 113, 113, 0.4)" }}
               >
                 Ready to bring your project to life? Whether you&apos;re looking
-                for powerful vision-focused graphic design, motion graphics, sharp video edits, or full
-                creative direction, let&apos;s start the conversation.
+                for powerful vision-focused graphic design, motion graphics, sharp
+                video edits, or full creative direction, let&apos;s start the
+                conversation.
               </p>
               <p
                 className="text-sm font-body text-rose-100/70 mb-4 leading-relaxed"
-                style={{ textShadow: '0 0 6px rgba(248, 113, 113, 0.3)' }}
+                style={{ textShadow: "0 0 6px rgba(248, 113, 113, 0.3)" }}
               >
                 Share as much detail as you&apos;d like about your project —
                 style references, timeline, budget range, and where the final
@@ -368,16 +398,24 @@ const Contact = () => {
             </div>
 
             {/* 3D Spinning Red Gem */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 w-full lg:w-auto flex justify-center">
               <div
                 className="relative"
                 style={{
-                  filter: 'drop-shadow(0 0 30px rgba(248, 113, 113, 0.8))',
+                  filter: "drop-shadow(0 0 30px rgba(248, 113, 113, 0.8))",
                 }}
-                onMouseEnter={() => { isGemHovered.current = true; }}
-                onMouseLeave={() => { isGemHovered.current = false; }}
+                onMouseEnter={() => {
+                  isGemHovered.current = true;
+                }}
+                onMouseLeave={() => {
+                  isGemHovered.current = false;
+                }}
               >
-                <div ref={gemContainerRef} className="w-[320px] h-[320px] md:w-[400px] md:h-[400px]" />
+                {/* ✅ responsiveness-only: gem container now fluid */}
+                <div
+                  ref={gemContainerRef}
+                  className="w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px]"
+                />
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 to-red-500/20 blur-3xl animate-pulse" />
                 </div>
@@ -388,18 +426,18 @@ const Contact = () => {
           {/* Main Contact Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Left: Info / Details */}
-            <div className="p-8 bg-gradient-to-br from-rose-900/30 to-red-950/30 rounded-2xl border border-rose-500/30 backdrop-blur-sm">
+            <div className="p-6 sm:p-8 bg-gradient-to-br from-rose-900/30 to-red-950/30 rounded-2xl border border-rose-500/30 backdrop-blur-sm">
               <h2
                 className="text-3xl font-heading font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-red-400"
-                style={{ textShadow: '0 0 18px rgba(248, 113, 113, 0.6)' }}
+                style={{ textShadow: "0 0 18px rgba(248, 113, 113, 0.6)" }}
               >
                 Let&apos;s Collaborate
               </h2>
               <p className="font-body text-rose-100/80 mb-6 leading-relaxed">
-                I work with companies, artists, brands, studios, and storytellers who care
-                deeply about visuals, sound, and emotional impact. If you have a
-                clear brief or just a feeling you want to capture, I&apos;ll help
-                shape it into a cinematic experience.
+                I work with companies, artists, brands, studios, and storytellers
+                who care deeply about visuals, sound, and emotional impact. If you
+                have a clear brief or just a feeling you want to capture, I&apos;ll
+                help shape it into a cinematic experience.
               </p>
 
               <div className="space-y-4 mb-8">
@@ -407,9 +445,7 @@ const Contact = () => {
                   <h3 className="font-body text-sm uppercase tracking-wide text-rose-300/80 mb-1">
                     Email
                   </h3>
-                  <p className="font-body text-rose-100">
-                    coreymarshpm@gmail.com
-                  </p>
+                  <p className="font-body text-rose-100">coreymarshpm@gmail.com</p>
                 </div>
                 <div>
                   <h3 className="font-body text-sm uppercase tracking-wide text-rose-300/80 mb-1">
@@ -433,16 +469,16 @@ const Contact = () => {
               </div>
 
               <div className="font-body text-xs text-rose-200/70 italic">
-                *If you have a tight deadline, please include your ideal launch date
-                so I can respond with realistic options.
+                *If you have a tight deadline, please include your ideal launch
+                date so I can respond with realistic options.
               </div>
             </div>
 
             {/* Right: Contact Form */}
-            <div className="p-8 bg-gradient-to-br from-black/60 to-rose-950/40 rounded-2xl border border-rose-500/30 backdrop-blur-sm">
+            <div className="p-6 sm:p-8 bg-gradient-to-br from-black/60 to-rose-950/40 rounded-2xl border border-rose-500/30 backdrop-blur-sm">
               <h2
                 className="text-2xl font-heading font-bold mb-4 text-rose-100"
-                style={{ textShadow: '0 0 14px rgba(248, 113, 113, 0.6)' }}
+                style={{ textShadow: "0 0 14px rgba(248, 113, 113, 0.6)" }}
               >
                 Share Your Project
               </h2>
@@ -511,9 +547,7 @@ const Contact = () => {
                     onChange={onChange("budgetRange")}
                     className="w-full px-3 py-2 rounded-md bg-black/60 border border-rose-500/40 text-rose-100 text-sm font-body focus:outline-none focus:ring-2 focus:ring-rose-400/70 focus:border-rose-300 transition"
                   >
-                    <option value="">
-                      Select a rough range
-                    </option>
+                    <option value="">Select a rough range</option>
                     <option>Under $500</option>
                     <option>$500 – $1,500</option>
                     <option>$1,500 – $3,500</option>
@@ -559,7 +593,7 @@ const Contact = () => {
                           : status.state === "error"
                           ? "rgba(254,205,211,0.95)"
                           : "rgba(254,226,226,0.9)",
-                      textShadow: "0 0 10px rgba(248, 113, 113, 0.25)"
+                      textShadow: "0 0 10px rgba(248, 113, 113, 0.25)",
                     }}
                   >
                     {status.message}
@@ -573,15 +607,15 @@ const Contact = () => {
                     status.state === "sending" ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                   style={{
-                    boxShadow: '0 0 22px rgba(248, 113, 113, 0.8)',
+                    boxShadow: "0 0 22px rgba(248, 113, 113, 0.8)",
                   }}
                 >
                   {status.state === "sending" ? "Sending..." : "Send Message"}
                 </button>
 
                 <p className="text-[11px] font-body text-rose-200/60 mt-3 text-center">
-                  I usually respond within 24–48 hours. If it&apos;s time-sensitive, mention
-                  your deadline in the message.
+                  I usually respond within 24–48 hours. If it&apos;s time-sensitive,
+                  mention your deadline in the message.
                 </p>
               </form>
             </div>
