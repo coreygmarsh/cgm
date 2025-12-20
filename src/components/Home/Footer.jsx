@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
-
+import { Link } from "react-router-dom";
 const Footer = () => {
   const containerRef = useRef(null);
 
@@ -244,36 +244,36 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* 2) Quick Links */}
-          <div className="flex md:justify-center">
-            <div>
-              <h4
-                className="text-2xl font-bold font-heading uppercase text-purple-200 mb-2"
-                style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.4)" }}
-              >
-                Quick Links
-              </h4>
+           {/* 2) Quick Links */}
+<div className="flex md:justify-center">
+  <div>
+    <h4
+      className="text-2xl font-bold font-heading uppercase text-purple-200 mb-2"
+      style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.4)" }}
+    >
+      Quick Links
+    </h4>
 
-              <ul className="space-y-2 text-center tracking-relaxed font-body text-lg">
-                {[
-                  { label: "Home", href: "/" },
-                  { label: "Work", href: "/library" },
-                  { label: "Beyond", href: "/beyond" },
-                  { label: "About", href: "/about" },
-                  { label: "Contact", href: "/contact" },
-                ].map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-purple-100/60 hover:text-purple-300 transition-colors duration-300"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+    <ul className="space-y-2 text-center tracking-relaxed font-body text-lg">
+      {[
+        { label: "Home", to: "/" },
+        { label: "Work", to: "/library" },
+        { label: "Beyond", to: "/beyond" },
+        { label: "About", to: "/about" },
+        { label: "Contact", to: "/contact" },
+      ].map((link) => (
+        <li key={link.label}>
+          <Link
+            to={link.to}
+            className="text-purple-100/60 hover:text-purple-300 transition-colors duration-300"
+          >
+            {link.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
 
           {/* 3) Services */}
           <div className="flex md:justify-end">
