@@ -239,7 +239,8 @@ const Footer = () => {
               className="text-purple-100/70 text-base sm:text-xl max-w-sm font-body leading-relaxed"
               style={{ textShadow: "0 0 10px rgba(200, 0, 255, 0.3)" }}
             >
-              Creating immersive worlds of color and motion through video editing,
+              Creating immersive worlds of <span className="text-purple-100/70 text-base italic sm:text-xl max-w-sm font-body leading-relaxed"
+              style={{ textShadow: "0 0 10px rgba(200, 0, 255, 1.0)" }}>color </span> and motion through video editing,
               music production, and visual storytelling. Every project is a dive
               into creative excellence.
             </p>

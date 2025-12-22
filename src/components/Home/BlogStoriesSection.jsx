@@ -399,7 +399,9 @@ const BlogStoriesSection = () => {
               textShadow: "0 0 10px rgba(255, 70, 90, 0.18)",
             }}
           >
-            A living map of ideas—tap a signal, follow the thread, and read what
+            A living map of ideas—tap a
+            <span className="text-rose-300 sm:text-xl max-w-sm font-body leading-relaxed"
+              style={{ textShadow: "0 0 10px rgba(255, 0, 50, 1.0)" }}> signal,</span>  follow the thread, and read what
             surfaced.
           </p>
 

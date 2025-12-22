@@ -326,9 +326,11 @@ const BeyondWorkSection = () => {
                 {/* ✅ responsiveness-only: paragraph size scales down on phones */}
                 <p className="text-amber-100/60 text-base sm:text-lg max-w-2xl mx-auto">
                   Where passion meets purpose and pursuit fuels creative{" "}
-                  <span className="text-amber-300 font-bold italic font-heading">
-                    gold.
-                  </span>
+                   <span className="text-amber-300 font-bold italic font-body leading-relaxed"
+              style={{ textShadow: "0 0 10px rgba(255, 255, 0, 1.0)" }}>gold.</span>
+               
+                    
+                  
                 </p>
               </div>
 
