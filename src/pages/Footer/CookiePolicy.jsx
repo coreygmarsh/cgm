@@ -137,7 +137,7 @@ const CookiePolicy = () => {
                 <p className="text-cyan-100/70">
                   Email:{" "}
                   <span className="text-cyan-200">
-                    coreymarshpm@gmail.com
+                    corey@cgmcreativesolutions.com
                   </span>
                 </p>
               </div>

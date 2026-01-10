@@ -445,7 +445,7 @@ const Contact = () => {
                   <h3 className="font-body text-sm uppercase tracking-wide text-rose-300/80 mb-1">
                     Email
                   </h3>
-                  <p className="font-body text-rose-100">coreymarshpm@gmail.com</p>
+                  <p className="font-body text-rose-100">corey@cgmcreativesolutions.com</p>
                 </div>
                 <div>
                   <h3 className="font-body text-sm uppercase tracking-wide text-rose-300/80 mb-1">

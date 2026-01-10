@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
+import { Link } from 'react-router-dom';
 
 const Beyond = () => {
   const waterContainerRef = useRef(null);
@@ -915,7 +916,7 @@ const InterestDeck = ({ children }) => {
       </h2>
 
       <p className="mt-4 text-white/70 font-body max-w-2xl mx-auto">
-        A prismatic snapshot of experience, skills, and education — engineered for clarity, styled like deep-sea jewels.
+        A prismatic snapshot of my experience, skills, and education — engineered for clarity, story themed like deep-sea jewels.
       </p>
     </div>
 
@@ -927,7 +928,7 @@ const InterestDeck = ({ children }) => {
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/25 to-fuchsia-400/20 border border-white/10 flex items-center justify-center">
             <span className="text-xl">💼</span>
           </div>
-          <h3 className="text-2xl md:text-3xl text-amber-300 font-bold font-heading  uppercase tracking-wide">
+          <h3 className="text-2xl md:text-3xl text-amber-300 font-bold font-heading uppercase tracking-widest">
             Experience
           </h3>
           <div className="ml-auto h-[2px] flex-1 max-w-[200px] bg-gradient-to-r from-cyan-300/50 via-yellow-200/30 to-fuchsia-300/40 rounded-full" />
@@ -1041,21 +1042,45 @@ const InterestDeck = ({ children }) => {
       </section>
 
       {/* Download Button */}
-      <div className="pt-4 text-center">
-        <button
-          className="px-10 py-4 rounded-full font-bold font-body text-black bg-gradient-to-r from-cyan-300 via-green-200 to-teal-300 hover:opacity-95 transition-all duration-300"
-          style={{
-            boxShadow:
-              "0 0 30px rgba(34,211,238,0.22), 0 0 30px rgba(250,204,21,0.14), 0 0 30px rgba(168,85,247,0.16)",
-          }}
-        >
-          Download PDF Resume
-        </button>
+<div className="pt-4 text-center">
+  <button
+    type="button"
+    onClick={async () => {
+      try {
+        const response = await fetch("/Resume_2026.pdf");
+        const blob = await response.blob();
 
-        <div className="mt-3 text-xs text-white/55 font-body">
-          Tip: export from your PDF with the same hierarchy you see here (big title → section headers → bullets).
-        </div>
-      </div>
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "Resume_2026.pdf";
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Resume download failed", err);
+      }
+    }}
+    className="px-10 py-4 rounded-full font-bold font-body text-black 
+               bg-gradient-to-r from-cyan-300 via-green-200 to-teal-300 
+               hover:opacity-95 transition-all duration-300"
+    style={{
+      boxShadow:
+        "0 0 30px rgba(34,211,238,0.22), 0 0 30px rgba(250,204,21,0.14), 0 0 30px rgba(168,85,247,0.16)",
+    }}
+  >
+    Download PDF Resume
+  </button>
+
+  <div className="mt-3 text-xs text-white/55 font-body">
+    Tip: export from your PDF with the same hierarchy you see here (big title → section headers → bullets).
+  </div>
+</div>
+
+      
     </div>
   </div>
 </div>
@@ -1073,10 +1098,18 @@ const InterestDeck = ({ children }) => {
                 Every passion feeds the work. Every project is intentional. 
                 Let's collaborate and bring your vision to life with the same intensity I bring to everything I do.
               </p>
-              <button className="px-10 py-4 bg-gradient-to-r from-yellow-500 to-amber-500 cursor-pointer text-black text-lg font-bold rounded-full hover:from-yellow-400 hover:to-amber-400 transition-all duration-300 shadow-lg"
-                      style={{ boxShadow: '0 0 30px rgba(255, 220, 0, 0.5)' }}>
-                Start a Conversation
-              </button>
+              <Link to="/contact">
+  <button
+    type="button"
+    className="px-10 py-4 bg-gradient-to-r from-yellow-500 to-amber-500 
+               cursor-pointer text-black text-lg font-bold rounded-full 
+               hover:from-yellow-400 hover:to-amber-400 
+               transition-all duration-300 shadow-lg"
+    style={{ boxShadow: "0 0 30px rgba(255, 220, 0, 0.5)" }}
+  >
+    Start a Conversation
+  </button>
+</Link>
             </div>
           </div>
         </div>

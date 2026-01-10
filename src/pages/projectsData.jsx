@@ -566,20 +566,10 @@ export const projects = [
   category: 'books', 
   year: '2025', 
   description: 'An epic fantasy tale of two kingdoms divided by the sea',
-  image: '/books/book-one.jpg',
+  image: '/photos/TTOTTK.png',
   synopsis: 'In a world where two kingdoms rule opposite shores of a mystical ocean, twin princes must navigate political intrigue, ancient magic, and their own conflicting destinies. When the tides begin to turn against the natural order, they discover their connection runs deeper than blood – their fates are tied to the very sea that separates them.',
-  chapters: [
-    'The Divided Shore',
-    'Whispers Beneath the Waves',
-    'The First Tide',
-    'Crown of Coral',
-    'The Midnight Crossing',
-    'Secrets of the Deep',
-    'The Storm Brothers',
-    'Rising Waters',
-    'The Convergence',
-    'Kingdom of Tides'
-  ]
+  amazonLink: 'https://www.amazon.com/dp/B0GDKFSN3Q',
+  
 },
 { 
   id: 34, 
@@ -588,18 +578,8 @@ export const projects = [
   year: '2025', 
   description: 'A science fiction journey through rebirth and revolution',
   image: '/books/book-two.jpg',
-  synopsis: 'Three centuries after Earth\'s collapse, humanity has rebuilt civilization on the ashes of the old world. But the Phoenix Empire, humanity\'s greatest achievement, harbors a dark secret: every generation, the empire must burn and be reborn to survive. When a young engineer discovers the truth behind the cycles, she must decide whether to save the empire or let it die for good.',
-  chapters: [
-    'The Ash Archives',
-    'Embers of Memory',
-    'The Burning Season',
-    'Flight of the Phoenix',
-    'Smoke and Mirrors',
-    'The Last Flame',
-    'Ashes to Ashes',
-    'The Rebirth Protocol',
-    'Wings of Fire',
-    'New Dawn'
-  ]
+  synopsis: 'six decades after Earth\'s collapse, humanity has rebuilt civilization on the ashes of the old world. But the Phoenix Empire, humanity\'s greatest achievement, harbors a dark secret: every generation, the empire must burn and be reborn to survive. When a young engineer discovers the truth behind the cycles, she must decide whether to save the empire or let it die for good.',
+  amazonLink: 'https://www.amazon.com/dp/B0GFFYSD5L',
+  
 },  
 ];

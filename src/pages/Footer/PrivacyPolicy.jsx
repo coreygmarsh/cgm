@@ -155,7 +155,7 @@ const PrivacyPolicy = () => {
                   <span className="font-semibold text-cyan-100/90">Corey G. Marsh</span>
                 </p>
                 <p className="text-cyan-100/70">
-                  Email: <span className="text-cyan-200">coreymarshpm@gmail.com</span>
+                  Email: <span className="text-cyan-200">corey@cgmcreativesolutions.com</span>
                 </p>
               </div>
             </section>
