@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 
-const AGENCY_URL = "https://www.coreygmarsh.com"; // ← change this to your real URL
+const AGENCY_URL = "https://www.cgmcreativesolutions.com"; // ← change this to your real URL
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);

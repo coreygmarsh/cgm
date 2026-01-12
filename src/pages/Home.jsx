@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import UnderwaterHero from "../components/UnderwaterHero";
 import FeaturedWorkSection from "../components/Home/FeaturedWorkSection";
 import BeyondWorkSection from "../components/Home/BeyondWorkSection";
@@ -43,7 +43,6 @@ function RevealSection({ id, children, onActive }) {
       const center = window.innerHeight / 2;
       const elCenter = rect.top + rect.height / 2;
       const dist = Math.abs(elCenter - center);
-
       if (dist < window.innerHeight * 0.35) onActive?.(id);
     };
 
@@ -77,25 +76,23 @@ function RevealSection({ id, children, onActive }) {
 /**
  * ColorWheelNav
  * - true radial wheel
- * - underwater-style glow on active segment (teal/emerald bloom like your shader)
+ * - underwater-style glow on active segment
  * - clickable arcs scroll to section
  */
 function ColorWheelNav({ sections, active }) {
-  const size = 78; // px
+  const size = 78;
   const strokeBase = 12;
   const strokeActive = 16;
 
-  // SVG space
   const r = 36;
   const cx = 50;
   const cy = 50;
 
   const C = 2 * Math.PI * r;
-  const gap = 7; // gap between segments
+  const gap = 7;
   const seg = C / sections.length;
   const dash = Math.max(8, seg - gap);
 
-  // Underwater shader-esque bloom (teal/emerald)
   const UNDERWATER_GLOW = [
     "drop-shadow(0 0 6px rgba(0, 220, 200, 0.35))",
     "drop-shadow(0 0 14px rgba(0, 220, 200, 0.22))",
@@ -110,26 +107,11 @@ function ColorWheelNav({ sections, active }) {
 
   return (
     <div className="fixed right-6 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center">
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 100 100"
-        style={{ overflow: "visible" }}
-      >
-        {/* faint base ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth="24"
-        />
+      <svg width={size} height={size} viewBox="0 0 100 100" style={{ overflow: "visible" }}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="24" />
 
         {sections.map((s, i) => {
           const isActive = active === s.id;
-
-          // rotate so first segment starts near top
           const offset = -(seg * i) + C * 0.25;
 
           return (
@@ -143,7 +125,6 @@ function ColorWheelNav({ sections, active }) {
                 transition: "filter 250ms ease, opacity 250ms ease",
               }}
             >
-              {/* glow stroke behind active arc */}
               <circle
                 cx={cx}
                 cy={cy}
@@ -156,8 +137,6 @@ function ColorWheelNav({ sections, active }) {
                 strokeDashoffset={offset}
                 opacity={isActive ? 1 : 0}
               />
-
-              {/* main arc */}
               <circle
                 cx={cx}
                 cy={cy}
@@ -169,12 +148,8 @@ function ColorWheelNav({ sections, active }) {
                 strokeDasharray={`${dash} ${C - dash}`}
                 strokeDashoffset={offset}
                 opacity={isActive ? 1 : 0.45}
-                style={{
-                  transition: "opacity 250ms ease, stroke-width 250ms ease",
-                }}
+                style={{ transition: "opacity 250ms ease, stroke-width 250ms ease" }}
               />
-
-              {/* tiny marker dot at segment start */}
               <circle
                 cx={cx}
                 cy={cy}
@@ -195,10 +170,6 @@ function ColorWheelNav({ sections, active }) {
   );
 }
 
-/**
- * helper: hex -> rgba string
- * used for spotlight tinting
- */
 function hexToRgba(hex, alpha = 1) {
   const clean = hex.replace("#", "");
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
@@ -210,8 +181,145 @@ function hexToRgba(hex, alpha = 1) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/** Simple helper hook */
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia(query);
+    const onChange = (e) => setMatches(e.matches);
+    setMatches(mql.matches);
+
+    if (mql.addEventListener) mql.addEventListener("change", onChange);
+    else mql.addListener(onChange);
+
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener("change", onChange);
+      else mql.removeListener(onChange);
+    };
+  }, [query]);
+
+  return matches;
+}
+
+/**
+ * Preloader
+ * - cheap (CSS + a couple small motion-ish effects)
+ * - locks scroll while showing
+ */
+function Preloader({ show, label = "Loading experience…" }) {
+  useEffect(() => {
+    if (!show) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [show]);
+
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black grid place-items-center">
+      <div className="relative text-center px-6">
+        <div
+          className="absolute inset-0 -z-10 blur-3xl opacity-60"
+          style={{
+            background:
+              "radial-gradient(700px 450px at 50% 50%, rgba(34,211,238,0.22), transparent 60%)",
+          }}
+        />
+        <div className="mx-auto mb-6 h-14 w-14 rounded-full border border-white/15 grid place-items-center">
+          <div className="h-9 w-9 rounded-full border-2 border-cyan-400/70 border-t-transparent animate-spin" />
+        </div>
+        <div className="text-white font-semibold tracking-wide">{label}</div>
+        <div className="mt-2 text-white/55 text-sm">
+          One moment — loading visuals & sections.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Desktop Notice Modal
+ * - shows on mobile/tablet (or coarse pointer)
+ * - dismissable + remembers in localStorage
+ */
+function DesktopNoticeModal({ open, onClose }) {
+  useEffect(() => {
+    if (!open) return;
+
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[55]">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="absolute inset-0 grid place-items-center p-6">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950/80 backdrop-blur-xl p-6 shadow-[0_0_80px_rgba(34,211,238,0.12)]">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-white font-semibold text-lg">
+                Best viewed on desktop
+              </div>
+              <div className="mt-2 text-white/70 leading-relaxed">
+                For the full experience (animations, layout, and navigation),
+                this site is best viewed on a desktop screen.
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 transition"
+              aria-label="Close"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-5 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={onClose}
+              type="button"
+              className="w-full rounded-xl bg-cyan-500/90 hover:bg-cyan-400 text-black font-semibold py-3 transition"
+            >
+              Continue anyway
+            </button>
+            <button
+              onClick={onClose}
+              type="button"
+              className="w-full rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold py-3 transition"
+            >
+              Got it
+            </button>
+          </div>
+
+          <div className="mt-3 text-xs text-white/45">
+            Tip: rotate to landscape or use a larger display for best results.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
-  // 6 sections in color wheel order:
+  // sections in color wheel order
   const sections = useMemo(
     () => [
       { id: "hero", label: "Hero", color: "#3b82f6" }, // blue
@@ -237,14 +345,59 @@ export default function Home() {
     return stops[Math.min(stops.length - 1, activeIndex)];
   }, [activeIndex]);
 
-  // Tint spotlight by active section color (keeps your vibe but makes it coherent)
+  // Tint spotlight by active section color
   const spotlightColor = useMemo(() => {
     const s = sections[activeIndex];
     return s?.color ?? "#22d3ee";
   }, [sections, activeIndex]);
 
+  // ✅ PRELOADER (short, but waits for next paint + assets settle)
+  const [showLoader, setShowLoader] = useState(true);
+  useEffect(() => {
+    let t1 = 0;
+    let t2 = 0;
+
+    const finish = () => setShowLoader(false);
+
+    // wait for first paint
+    t1 = requestAnimationFrame(() => {
+      // give the browser a tiny moment to finish layout + decode
+      t2 = window.setTimeout(finish, 900);
+    });
+
+    return () => {
+      cancelAnimationFrame(t1);
+      clearTimeout(t2);
+    };
+  }, []);
+
+  // ✅ DESKTOP NOTICE MODAL (only show once)
+  const isMobileLike = useMediaQuery("(max-width: 1024px), (pointer: coarse)");
+  const [showDesktopModal, setShowDesktopModal] = useState(false);
+
+  useEffect(() => {
+    if (!isMobileLike) return;
+
+    const key = "cgm_desktop_notice_dismissed";
+    const dismissed = typeof window !== "undefined" && localStorage.getItem(key) === "1";
+    if (!dismissed) setShowDesktopModal(true);
+  }, [isMobileLike]);
+
+  const closeDesktopModal = useCallback(() => {
+    try {
+      localStorage.setItem("cgm_desktop_notice_dismissed", "1");
+    } catch {}
+    setShowDesktopModal(false);
+  }, []);
+
   return (
     <main className="bg-black text-white relative">
+      {/* Preloader */}
+      <Preloader show={showLoader} label="Loading experience…" />
+
+      {/* Desktop Notice Modal */}
+      <DesktopNoticeModal open={showDesktopModal} onClose={closeDesktopModal} />
+
       {/* Spotlight layer */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div
